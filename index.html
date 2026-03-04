@@ -47,19 +47,19 @@
             justify-content: center;
             gap: 20px;
             z-index: 20;
-            pointer-events: none; /* 下の図形をクリックしないように */
+            pointer-events: none;
             text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
             width: 100%;
             text-align: center;
-            height: 100%; /* 上下中央揃えのため */
+            height: 100%;
         }
 
         /* 質問の中のアイコン */
         #message-overlay .emoji {
-            font-size: 5rem; /* 顔文字は横に長いため少し縮小 */
+            font-size: 5rem;
             line-height: 1;
             filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
-            white-space: nowrap; /* 顔文字の改行防止 */
+            white-space: nowrap;
         }
 
         /* 出現する顔文字 */
@@ -71,14 +71,22 @@
             align-items: center;
             pointer-events: none;
         }
+        
         .shape .emoji {
             line-height: 1;
-            filter: drop-shadow(3px 3px 2px rgba(0,0,0,0.15));
+            font-weight: bold;
+            /* 重なっても見やすいように白いフチドリを追加 */
+            text-shadow: 
+                2px 2px 0px #fff, -2px -2px 0px #fff, 
+                2px -2px 0px #fff, -2px 2px 0px #fff,
+                2px 0px 0px #fff, -2px 0px 0px #fff,
+                0px 2px 0px #fff, 0px -2px 0px #fff;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
             display: block;
-            white-space: nowrap; /* 顔文字の改行防止 */
+            white-space: nowrap;
         }
 
-        /* 操作パネル（下部に小さく） */
+        /* 操作パネル */
         #action-bar {
             height: 100px;
             display: flex;
@@ -126,7 +134,7 @@
             box-shadow: none;
         }
 
-        /* ⚙ 歯車ボタン（設定） */
+        /* ⚙ 歯車ボタン */
         #settings-trigger {
             position: absolute;
             bottom: 20px;
@@ -141,7 +149,7 @@
         }
         #settings-trigger:hover { opacity: 1; }
 
-        /* 設定画面（モーダル） */
+        /* 設定画面 */
         #settings-modal {
             display: none;
             position: fixed;
@@ -153,7 +161,7 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.4);
             z-index: 200;
             width: 90%;
-            max-width: 650px; /* 顔文字が横長なので少し広げる */
+            max-width: 650px;
             max-height: 90vh;
             overflow-y: auto;
             color: #333;
@@ -215,7 +223,7 @@
         #close-settings {
             width: 100%;
             padding: 15px;
-            background: #607D8B;
+            background: var(--btn-primary); /* 「つぎへ」ボタンと同じ色 */
             color: white;
             border: none;
             border-radius: 10px;
@@ -225,7 +233,6 @@
             margin-top: 10px;
         }
 
-        /* 背景を暗くするオーバーレイ */
         #modal-overlay {
             display: none;
             position: fixed;
@@ -272,9 +279,9 @@
         <div class="setting-row">
             <label class="main-label">個数（最小 〜 最大）</label>
             <div class="number-input-group">
-                <input type="number" id="min-count" value="3" min="1" max="20">
+                <input type="number" id="min-count" value="15" min="1" max="50">
                 <span>個 〜 </span>
-                <input type="number" id="max-count" value="8" min="1" max="20">
+                <input type="number" id="max-count" value="20" min="1" max="50">
                 <span>個</span>
             </div>
         </div>
@@ -295,17 +302,23 @@
                 <div style="grid-column: span 2;">
                     <div style="font-size:0.9rem; margin-bottom:4px;">表示のルール</div>
                     <select id="color-rule" style="width:100%">
-                        <option value="normal" selected>そのまま</option>
-                        <option value="rotate">回転あり</option>
+                        <option value="normal">そのまま</option>
+                        <option value="rotate" selected>回転あり</option>
                     </select>
                 </div>
                 <div>
                     <div style="font-size:0.9rem; margin-bottom:4px;">大きさ</div>
-                    <select id="size-rule" style="width:100%"><option value="uniform">同じ大きさ</option><option value="random">大小バラバラ</option></select>
+                    <select id="size-rule" style="width:100%">
+                        <option value="uniform">同じ大きさ</option>
+                        <option value="random" selected>大小バラバラ</option>
+                    </select>
                 </div>
                 <div>
                     <div style="font-size:0.9rem; margin-bottom:4px;">回答方法</div>
-                    <select id="answer-mode" style="width:100%"><option value="buttons">2択ボタン</option><option value="none">ボタンなし</option></select>
+                    <select id="answer-mode" style="width:100%">
+                        <option value="buttons">2択ボタン</option>
+                        <option value="none" selected>ボタンなし</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -320,68 +333,52 @@
     <div id="action-bar">
         <button id="btn-choice-1" class="choice-btn"></button>
         <button id="btn-choice-2" class="choice-btn"></button>
-
         <button id="btn-start" class="btn-sm">つぎへ ▶</button>
         <button id="btn-check" class="btn-sm">こたえ</button>
     </div>
 
     <script>
-        /**
-         * アプリの設定と状態管理
-         */
         const config = {
             shapes: ['face1'],
             time: 700,
-            min: 3,
-            max: 8,
-            color: 'normal',
-            size: 'uniform',
-            answer: 'buttons'
+            min: 15,    // デフォルト15〜20個
+            max: 20,
+            color: 'rotate', // 回転あり
+            size: 'random',  // 大きさバラバラ
+            answer: 'none'   // ボタンなし
         };
 
         const state = {
-            layoutItems: [], // 座標・サイズを含めた確定情報
+            layoutItems: [],
             target: '',
             count: 0,
             active: false
         };
 
-        // 顔文字マップ
         const EMOJI = {
             face1: "(*'▽')",
             face2: "( ´∀｀ )",
             face3: "(・∀・)",
             face4: "(￣▽￣)",
-
             face5: "(>_<)",
             face6: "( ﾟДﾟ)",
             face7: "( *´艸｀)",
             face8: "( ˘ω˘ )",
-
             face9: "(≧▽≦)",
             face10: "(´；ω；`)",
             face11: "(｀・ω・´)",
-
             dog: "(Ｕ・ω・Ｕ)",
             cat: "(=^・^=)",
             fish: "(゜))<<",
-
             bear: "(・(ｪ)・)",
             pig: "( ´(00)ˋ )"
         };
 
-        /**
-         * 顔文字HTML生成ヘルパー
-         */
         function getEmojiHTML(type) {
             const ch = EMOJI[type] || '(・ω・)';
-            // span にして size をCSSで制御できるようにする
             return `<span class="emoji" aria-hidden="true">${ch}</span>`;
         }
 
-        /**
-         * Web Audio API による効果音生成
-         */
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(type) {
@@ -393,22 +390,22 @@
 
             const t = audioCtx.currentTime;
 
-            if (type === 'pop') { // 出現音
+            if (type === 'pop') {
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(600, t);
                 gain.gain.setValueAtTime(0.1, t);
                 gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
                 osc.start(t);
                 osc.stop(t + 0.1);
-            } else if (type === 'correct') { // 正解ピンポン
+            } else if (type === 'correct') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(1046.5, t); // C6
-                osc.frequency.setValueAtTime(2093.0, t + 0.1); // C7
+                osc.frequency.setValueAtTime(1046.5, t);
+                osc.frequency.setValueAtTime(2093.0, t + 0.1);
                 gain.gain.setValueAtTime(0.3, t);
                 gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
                 osc.start(t);
                 osc.stop(t + 0.5);
-            } else if (type === 'wrong') { // 不正解ブブー
+            } else if (type === 'wrong') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(150, t);
                 osc.frequency.linearRampToValueAtTime(100, t + 0.3);
@@ -419,71 +416,51 @@
             }
         }
 
-        /**
-         * 待機関数
-         */
         const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-        /**
-         * ゲームメインシーケンス
-         */
         async function playSequence() {
             if (state.active) return;
             state.active = true;
 
-            updateConfig(); // 設定反映
+            updateConfig();
             resetUI();
-
             clearAllShapes();
 
-            // 問題データ生成
             const types = config.shapes.length ? config.shapes : ['face1'];
 
-            // 個数決定
             let minC = parseInt(config.min);
             let maxC = parseInt(config.max);
             if (minC > maxC) [minC, maxC] = [maxC, minC];
             const num = Math.floor(Math.random() * (maxC - minC + 1)) + minC;
 
             let tempItems = [];
-
-            // 顔文字タイプをランダムに決定
             for (let i = 0; i < num; i++) {
                 tempItems.push(types[Math.floor(Math.random() * types.length)]);
             }
 
-            // 実際に存在する中からターゲットを選ぶ
             const existing = [...new Set(tempItems)];
             state.target = existing[Math.floor(Math.random() * existing.length)];
-
-            // 正解数
             state.count = tempItems.filter(x => x === state.target).length;
 
-            // レイアウト生成（座標・サイズを確定）
             generateLayout(tempItems);
 
-            // --- 1. 予告フェーズ ---
             const msgHtml = `${getEmojiHTML(state.target)} は いくつ？`;
             document.getElementById('message-overlay').innerHTML = msgHtml;
 
-            await wait(1000); // 1秒予告
+            await wait(1000);
 
-            // --- 2. ブランク ---
             document.getElementById('message-overlay').innerHTML = '';
             await wait(300);
 
-            // --- 3. フラッシュ ---
-            renderItems(false); // 表示
+            renderItems(false);
             playSound('pop');
             await wait(config.time);
 
-            renderItems(true); // 非表示
+            renderItems(true);
 
-            // --- 4. 回答受付 ---
-            document.getElementById('message-overlay').innerHTML = msgHtml; // 質問再表示
+            document.getElementById('message-overlay').innerHTML = msgHtml;
 
             if (config.answer === 'buttons') {
-                // ダミーの回答生成
                 let wrong = state.count + (Math.random() > 0.5 ? 1 : -1);
                 if (wrong < 1) wrong = state.count + 2;
                 if (wrong === state.count) wrong = state.count + 1;
@@ -501,7 +478,6 @@
                 btn1.style.display = 'block';
                 btn2.style.display = 'block';
             } else {
-                // ボタンなしモード
                 document.getElementById('btn-check').style.display = 'block';
             }
 
@@ -509,67 +485,66 @@
         }
 
         /**
-         * レイアウト生成（座標・サイズを確定しstateに保存）
+         * なるべく重ならないように工夫したレイアウト生成
          */
         function generateLayout(itemTypes) {
             const area = document.getElementById('game-area');
             const w = area.clientWidth;
             const h = area.clientHeight;
 
-            // 画面サイズと個数に基づいて「顔文字の見た目サイズ（px）」を計算
-            // 顔文字は横に長いためベースサイズを少し小さめに調整
-            const basePx = Math.min(Math.max(Math.sqrt((w * h) / (itemTypes.length * 4)), 50), 180);
+            // 個数が多いのでベースサイズを少し小さめに調整
+            const basePx = Math.min(Math.max(Math.sqrt((w * h) / (itemTypes.length * 6)), 30), 120);
 
-            state.layoutItems = []; // リセット
+            state.layoutItems = [];
             const placed = [];
 
             itemTypes.forEach(type => {
-                const px = config.size === 'random' ? basePx * (0.75 + Math.random() * 0.55) : basePx;
-                let x, y, overlap, tries = 0;
+                // 大きさバラバラの調整
+                const px = config.size === 'random' ? basePx * (0.6 + Math.random() * 0.8) : basePx;
+                
+                // 顔文字は横長なので、横方向の当たり判定を広く取る
+                const widthOffset = px * 1.5; 
+                const heightOffset = px * 0.8;
+                
+                let x, y, overlap, attempts = 0;
 
-                // 重ならない位置を探す（横長の顔文字を考慮して少し余裕を持たせる）
                 do {
                     overlap = false;
-                    x = Math.random() * (w - px * 2) + px;
-                    y = Math.random() * (h - px) + px / 2;
+                    // 画面外にはみ出さないように安全な範囲で配置
+                    x = Math.random() * (w - widthOffset * 2) + widthOffset;
+                    y = Math.random() * (h - heightOffset * 2) + heightOffset;
+                    
+                    // 最初は厳密に重なりをチェックし、試行回数が増えると少し重なりを許容する
+                    let relaxFactor = Math.max(0.3, 1 - (attempts / 150));
+
                     for (let p of placed) {
-                        // 横幅を考慮した大まかな距離判定
                         const distX = Math.abs(x - p.x);
                         const distY = Math.abs(y - p.y);
-                        if (distX < (px + p.px) * 0.8 && distY < (px + p.px) * 0.5) {
+                        
+                        // 重なり判定
+                        if (distX < (widthOffset + p.px * 1.5) * relaxFactor && 
+                            distY < (heightOffset + p.px * 0.8) * relaxFactor) {
                             overlap = true;
                             break;
                         }
                     }
-                } while (overlap && tries++ < 150);
+                    attempts++;
+                } while (overlap && attempts < 250); // 250回試してダメなら妥協して置く
 
                 placed.push({ x, y, px });
 
-                // 回転（表示ルールが「回転あり」のときだけ）
                 const rot = (config.color === 'rotate') ? Math.floor(Math.random() * 360) : 0;
 
-                state.layoutItems.push({
-                    type,
-                    x,
-                    y,
-                    px,
-                    rot
-                });
+                state.layoutItems.push({ type, x, y, px, rot });
             });
         }
 
-        /**
-         * 顔文字を全消去する
-         */
         function clearAllShapes() {
             const area = document.getElementById('game-area');
             const old = area.querySelectorAll('.shape');
             old.forEach(e => e.remove());
         }
 
-        /**
-         * 顔文字描画（保存されたレイアウトを使用）
-         */
         function renderItems(hidden) {
             clearAllShapes();
             if (hidden) return;
@@ -583,7 +558,6 @@
                 el.style.left = item.x + 'px';
                 el.style.top = item.y + 'px';
 
-                // 表示ルール：回転あり
                 el.style.transform = `translate(-50%, -50%) rotate(${item.rot || 0}deg)`;
 
                 el.innerHTML = getEmojiHTML(item.type);
@@ -596,9 +570,6 @@
             });
         }
 
-        /**
-         * 回答チェック
-         */
         function checkAnswer(val) {
             if (val === state.count) {
                 playSound('correct');
@@ -608,18 +579,11 @@
             finishGame();
         }
 
-        // 先生用「こたえ」ボタン
         document.getElementById('btn-check').onclick = finishGame;
 
-        /**
-         * ゲーム終了・正解表示
-         */
         function finishGame() {
-            renderItems(false); // 顔文字を再表示
-
-            // 正解の文字は表示しない
+            renderItems(false);
             document.getElementById('message-overlay').innerHTML = '';
-
             document.getElementById('btn-choice-1').style.display = 'none';
             document.getElementById('btn-choice-2').style.display = 'none';
             document.getElementById('btn-check').style.display = 'none';
@@ -632,9 +596,6 @@
             document.getElementById('message-overlay').innerHTML = '';
         }
 
-        /**
-         * 設定パネル操作
-         */
         function updateConfig() {
             const checked = document.querySelectorAll('.shape-check:checked');
             if (checked.length > 0) {
@@ -666,10 +627,8 @@
         document.getElementById('close-settings').onclick = closeFunc;
         overlay.onclick = closeFunc;
 
-        // スタートボタン
         document.getElementById('btn-start').onclick = playSequence;
 
-        // 初期ロード時に設定反映
         updateConfig();
     </script>
 </body>
