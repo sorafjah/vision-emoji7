@@ -10,7 +10,7 @@
             --text-color: #006064; /* 濃い青緑 */
             --btn-primary: #4CAF50;
             --btn-secondary: #2196F3;
-            --choice-bg: #03A9F4; /* 鮮やかな水色に変更 */
+            --choice-bg: #03A9F4;
         }
 
         body {
@@ -23,7 +23,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            user-select: none; /* 誤操作防止 */
+            user-select: none;
             -webkit-user-select: none;
         }
 
@@ -40,7 +40,7 @@
 
         /* メッセージ表示（予告・質問・正解） */
         #message-overlay {
-            font-size: 5rem;
+            font-size: 4rem;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -48,13 +48,12 @@
             gap: 20px;
             z-index: 20;
             pointer-events: none;
-            text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+            text-shadow: 2px 2px 0px rgba(255,255,255,0.7);
             width: 100%;
             text-align: center;
             height: 100%;
         }
 
-        /* 質問の中のアイコン */
         #message-overlay .emoji {
             font-size: 5rem;
             line-height: 1;
@@ -75,7 +74,7 @@
         .shape .emoji {
             line-height: 1;
             font-weight: bold;
-            /* 重なっても見やすいように白いフチドリを追加 */
+            /* 重なっても見やすいように白いフチドリ */
             text-shadow: 
                 2px 2px 0px #fff, -2px -2px 0px #fff, 
                 2px -2px 0px #fff, -2px 2px 0px #fff,
@@ -299,7 +298,7 @@
         <div class="setting-row">
             <label class="main-label">詳細ルール</label>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div style="grid-column: span 2;">
+                <div>
                     <div style="font-size:0.9rem; margin-bottom:4px;">表示のルール</div>
                     <select id="color-rule" style="width:100%">
                         <option value="normal">そのまま</option>
@@ -311,6 +310,13 @@
                     <select id="size-rule" style="width:100%">
                         <option value="uniform">同じ大きさ</option>
                         <option value="random" selected>大小バラバラ</option>
+                    </select>
+                </div>
+                <div>
+                    <div style="font-size:0.9rem; margin-bottom:4px;">色分け</div>
+                    <select id="color-variation" style="width:100%">
+                        <option value="on">色を変える</option>
+                        <option value="off" selected>すべて同じ色</option>
                     </select>
                 </div>
                 <div>
@@ -341,10 +347,11 @@
         const config = {
             shapes: ['face1'],
             time: 700,
-            min: 15,    // デフォルト15〜20個
+            min: 15,
             max: 20,
             color: 'rotate', // 回転あり
             size: 'random',  // 大きさバラバラ
+            colorVar: 'off', // 色分けオフ
             answer: 'none'   // ボタンなし
         };
 
@@ -352,7 +359,8 @@
             layoutItems: [],
             target: '',
             count: 0,
-            active: false
+            active: false,
+            activeColors: {} // 種類ごとの色を保存
         };
 
         const EMOJI = {
@@ -373,6 +381,18 @@
             bear: "(・(ｪ)・)",
             pig: "( ´(00)ˋ )"
         };
+
+        // 色分け用のパレット（白フチでも見やすい濃いめの色）
+        const PALETTE = [
+            '#D32F2F', // 赤
+            '#1976D2', // 青
+            '#388E3C', // 緑
+            '#F57C00', // オレンジ
+            '#7B1FA2', // 紫
+            '#5D4037', // 茶色
+            '#C2185B', // ピンク
+            '#00796B'  // ティール（青緑）
+        ];
 
         function getEmojiHTML(type) {
             const ch = EMOJI[type] || '(・ω・)';
@@ -428,6 +448,12 @@
 
             const types = config.shapes.length ? config.shapes : ['face1'];
 
+            // 色分け用の色を割り当て
+            state.activeColors = {};
+            types.forEach((t, idx) => {
+                state.activeColors[t] = PALETTE[idx % PALETTE.length];
+            });
+
             let minC = parseInt(config.min);
             let maxC = parseInt(config.max);
             if (minC > maxC) [minC, maxC] = [maxC, minC];
@@ -444,7 +470,9 @@
 
             generateLayout(tempItems);
 
-            const msgHtml = `${getEmojiHTML(state.target)} は いくつ？`;
+            // 予告文字の色も設定に合わせる
+            const targetColor = config.colorVar === 'on' ? state.activeColors[state.target] : 'inherit';
+            const msgHtml = `<span style="color: ${targetColor}">${getEmojiHTML(state.target)}</span> は いくつ？`;
             document.getElementById('message-overlay').innerHTML = msgHtml;
 
             await wait(1000);
@@ -492,49 +520,64 @@
             const w = area.clientWidth;
             const h = area.clientHeight;
 
-            // 個数が多いのでベースサイズを少し小さめに調整
-            const basePx = Math.min(Math.max(Math.sqrt((w * h) / (itemTypes.length * 6)), 30), 120);
+            // 「そのまま（回転なし）＆ 同じ大きさ」の場合は完全な四角形として判定するモード
+            const isStrict = (config.color === 'normal' && config.size === 'uniform');
+
+            // 厳密配置モードのときは、必ず画面に収まるようにベースサイズを小さめに計算する
+            const safetyDivisor = isStrict ? 12 : 6;
+            const basePx = Math.min(Math.max(Math.sqrt((w * h) / (itemTypes.length * safetyDivisor)), 20), 100);
 
             state.layoutItems = [];
             const placed = [];
 
             itemTypes.forEach(type => {
-                // 大きさバラバラの調整
                 const px = config.size === 'random' ? basePx * (0.6 + Math.random() * 0.8) : basePx;
                 
-                // 顔文字は横長なので、横方向の当たり判定を広く取る
-                const widthOffset = px * 1.5; 
-                const heightOffset = px * 0.8;
+                // 顔文字の文字数から横幅をざっくり計算
+                const chars = EMOJI[type].length;
+                const itemWidth = px * (chars * 0.5); // 1文字あたり0.5px幅と仮定
+                const itemHeight = px * 1.2;
                 
                 let x, y, overlap, attempts = 0;
 
                 do {
                     overlap = false;
-                    // 画面外にはみ出さないように安全な範囲で配置
-                    x = Math.random() * (w - widthOffset * 2) + widthOffset;
-                    y = Math.random() * (h - heightOffset * 2) + heightOffset;
+                    // 画面内に収まるように配置
+                    x = Math.random() * (w - itemWidth) + itemWidth / 2;
+                    y = Math.random() * (h - itemHeight) + itemHeight / 2;
                     
-                    // 最初は厳密に重なりをチェックし、試行回数が増えると少し重なりを許容する
-                    let relaxFactor = Math.max(0.3, 1 - (attempts / 150));
-
                     for (let p of placed) {
-                        const distX = Math.abs(x - p.x);
-                        const distY = Math.abs(y - p.y);
-                        
-                        // 重なり判定
-                        if (distX < (widthOffset + p.px * 1.5) * relaxFactor && 
-                            distY < (heightOffset + p.px * 0.8) * relaxFactor) {
-                            overlap = true;
-                            break;
+                        if (isStrict) {
+                            // 回転なし・同じ大きさなら、厳密な四角形（AABB）の重なりチェックを行う
+                            const l1 = x - itemWidth / 2, r1 = x + itemWidth / 2;
+                            const t1 = y - itemHeight / 2, b1 = y + itemHeight / 2;
+                            const l2 = p.x - p.w / 2, r2 = p.x + p.w / 2;
+                            const t2 = p.y - p.h / 2, b2 = p.y + p.h / 2;
+
+                            // ちょっとでも重なったらアウト（余白を少し持たせる）
+                            if (!(r1 < l2 - 5 || l1 > r2 + 5 || b1 < t2 - 5 || t1 > b2 + 5)) {
+                                overlap = true;
+                                break;
+                            }
+                        } else {
+                            // バラバラや回転がある時は、アバウトな距離チェックで妥協する
+                            let relaxFactor = Math.max(0.2, 1 - (attempts / 150));
+                            const distX = Math.abs(x - p.x);
+                            const distY = Math.abs(y - p.y);
+                            
+                            if (distX < ((itemWidth + p.w) / 2) * relaxFactor && 
+                                distY < ((itemHeight + p.h) / 2) * relaxFactor) {
+                                overlap = true;
+                                break;
+                            }
                         }
                     }
                     attempts++;
-                } while (overlap && attempts < 250); // 250回試してダメなら妥協して置く
+                } while (overlap && attempts < (isStrict ? 500 : 250)); // 厳密モードは試行回数を多くする
 
-                placed.push({ x, y, px });
+                placed.push({ x, y, px, w: itemWidth, h: itemHeight });
 
                 const rot = (config.color === 'rotate') ? Math.floor(Math.random() * 360) : 0;
-
                 state.layoutItems.push({ type, x, y, px, rot });
             });
         }
@@ -557,8 +600,12 @@
                 
                 el.style.left = item.x + 'px';
                 el.style.top = item.y + 'px';
-
                 el.style.transform = `translate(-50%, -50%) rotate(${item.rot || 0}deg)`;
+
+                // 色分け設定の反映
+                if (config.colorVar === 'on') {
+                    el.style.color = state.activeColors[item.type];
+                }
 
                 el.innerHTML = getEmojiHTML(item.type);
                 const emo = el.querySelector('.emoji');
@@ -607,6 +654,7 @@
             config.time = parseInt(document.getElementById('display-time').value);
             config.color = document.getElementById('color-rule').value;
             config.size = document.getElementById('size-rule').value;
+            config.colorVar = document.getElementById('color-variation').value;
             config.answer = document.getElementById('answer-mode').value;
         }
 
