@@ -197,6 +197,38 @@
             background: #fff;
         }
 
+        /* ランダム選択エリアのスタイル */
+        .random-select-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f0f8ff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .random-select-group input[type="number"] {
+            width: 70px;
+            text-align: center;
+            font-weight: bold;
+        }
+        #btn-random-select {
+            background-color: #00BFFF; /* 水色 */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #009ACD;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        #btn-random-select:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
         .number-input-group {
             display: flex;
             align-items: center;
@@ -251,15 +283,22 @@
 
         <div class="setting-row">
             <label class="main-label">表示する顔文字</label>
+            
+            <div class="random-select-group">
+                <input type="number" id="random-count" value="7" min="1" max="16">
+                <span style="font-size: 1.2rem; font-weight: bold;">種類を</span>
+                <button id="btn-random-select" type="button">ランダムに選ぶ</button>
+            </div>
+
             <div class="check-group">
                 <label><input type="checkbox" class="shape-check" value="face1" checked><span class="emoji-mini">(*'▽')</span> にっこり</label>
-                <label><input type="checkbox" class="shape-check" value="face2"><span class="emoji-mini">( ´∀｀ )</span> ほっこり</label>
-                <label><input type="checkbox" class="shape-check" value="face3"><span class="emoji-mini">(・∀・)</span> キリッ</label>
-                <label><input type="checkbox" class="shape-check" value="face4"><span class="emoji-mini">(￣▽￣)</span> ニヤリ</label>
+                <label><input type="checkbox" class="shape-check" value="face2" checked><span class="emoji-mini">( ´∀｀ )</span> ほっこり</label>
+                <label><input type="checkbox" class="shape-check" value="face3" checked><span class="emoji-mini">(・∀・)</span> キリッ</label>
+                <label><input type="checkbox" class="shape-check" value="face4" checked><span class="emoji-mini">(￣▽￣)</span> ニヤリ</label>
                 
-                <label><input type="checkbox" class="shape-check" value="face5"><span class="emoji-mini">(&gt;_&lt;)</span> いてて</label>
-                <label><input type="checkbox" class="shape-check" value="face6"><span class="emoji-mini">( ﾟДﾟ)</span> びっくり</label>
-                <label><input type="checkbox" class="shape-check" value="face7"><span class="emoji-mini">( *´艸｀)</span> うふふ</label>
+                <label><input type="checkbox" class="shape-check" value="face5" checked><span class="emoji-mini">(&gt;_&lt;)</span> いてて</label>
+                <label><input type="checkbox" class="shape-check" value="face6" checked><span class="emoji-mini">( ﾟДﾟ)</span> びっくり</label>
+                <label><input type="checkbox" class="shape-check" value="face7" checked><span class="emoji-mini">( *´艸｀)</span> うふふ</label>
                 <label><input type="checkbox" class="shape-check" value="face8"><span class="emoji-mini">( ˘ω˘ )</span> すやぁ</label>
 
                 <label><input type="checkbox" class="shape-check" value="face9"><span class="emoji-mini">(≧▽≦)</span> わーい</label>
@@ -345,7 +384,7 @@
 
     <script>
         const config = {
-            shapes: ['face1'],
+            shapes: [],
             time: 700,
             min: 15,
             max: 20,
@@ -382,16 +421,10 @@
             pig: "( ´(00)ˋ )"
         };
 
-        // 色分け用のパレット（白フチでも見やすい濃いめの色）
+        // 色分け用のパレット
         const PALETTE = [
-            '#D32F2F', // 赤
-            '#1976D2', // 青
-            '#388E3C', // 緑
-            '#F57C00', // オレンジ
-            '#7B1FA2', // 紫
-            '#5D4037', // 茶色
-            '#C2185B', // ピンク
-            '#00796B'  // ティール（青緑）
+            '#D32F2F', '#1976D2', '#388E3C', '#F57C00', 
+            '#7B1FA2', '#5D4037', '#C2185B', '#00796B'
         ];
 
         function getEmojiHTML(type) {
@@ -446,6 +479,7 @@
             resetUI();
             clearAllShapes();
 
+            // 万が一チェックが0個の場合は1つめを強制使用
             const types = config.shapes.length ? config.shapes : ['face1'];
 
             // 色分け用の色を割り当て
@@ -470,7 +504,6 @@
 
             generateLayout(tempItems);
 
-            // 予告文字の色も設定に合わせる
             const targetColor = config.colorVar === 'on' ? state.activeColors[state.target] : 'inherit';
             const msgHtml = `<span style="color: ${targetColor}">${getEmojiHTML(state.target)}</span> は いくつ？`;
             document.getElementById('message-overlay').innerHTML = msgHtml;
@@ -512,18 +545,12 @@
             state.active = false;
         }
 
-        /**
-         * なるべく重ならないように工夫したレイアウト生成
-         */
         function generateLayout(itemTypes) {
             const area = document.getElementById('game-area');
             const w = area.clientWidth;
             const h = area.clientHeight;
 
-            // 「そのまま（回転なし）＆ 同じ大きさ」の場合は完全な四角形として判定するモード
             const isStrict = (config.color === 'normal' && config.size === 'uniform');
-
-            // 厳密配置モードのときは、必ず画面に収まるようにベースサイズを小さめに計算する
             const safetyDivisor = isStrict ? 12 : 6;
             const basePx = Math.min(Math.max(Math.sqrt((w * h) / (itemTypes.length * safetyDivisor)), 20), 100);
 
@@ -532,35 +559,29 @@
 
             itemTypes.forEach(type => {
                 const px = config.size === 'random' ? basePx * (0.6 + Math.random() * 0.8) : basePx;
-                
-                // 顔文字の文字数から横幅をざっくり計算
                 const chars = EMOJI[type].length;
-                const itemWidth = px * (chars * 0.5); // 1文字あたり0.5px幅と仮定
+                const itemWidth = px * (chars * 0.5);
                 const itemHeight = px * 1.2;
                 
                 let x, y, overlap, attempts = 0;
 
                 do {
                     overlap = false;
-                    // 画面内に収まるように配置
                     x = Math.random() * (w - itemWidth) + itemWidth / 2;
                     y = Math.random() * (h - itemHeight) + itemHeight / 2;
                     
                     for (let p of placed) {
                         if (isStrict) {
-                            // 回転なし・同じ大きさなら、厳密な四角形（AABB）の重なりチェックを行う
                             const l1 = x - itemWidth / 2, r1 = x + itemWidth / 2;
                             const t1 = y - itemHeight / 2, b1 = y + itemHeight / 2;
                             const l2 = p.x - p.w / 2, r2 = p.x + p.w / 2;
                             const t2 = p.y - p.h / 2, b2 = p.y + p.h / 2;
 
-                            // ちょっとでも重なったらアウト（余白を少し持たせる）
                             if (!(r1 < l2 - 5 || l1 > r2 + 5 || b1 < t2 - 5 || t1 > b2 + 5)) {
                                 overlap = true;
                                 break;
                             }
                         } else {
-                            // バラバラや回転がある時は、アバウトな距離チェックで妥協する
                             let relaxFactor = Math.max(0.2, 1 - (attempts / 150));
                             const distX = Math.abs(x - p.x);
                             const distY = Math.abs(y - p.y);
@@ -573,10 +594,9 @@
                         }
                     }
                     attempts++;
-                } while (overlap && attempts < (isStrict ? 500 : 250)); // 厳密モードは試行回数を多くする
+                } while (overlap && attempts < (isStrict ? 500 : 250));
 
                 placed.push({ x, y, px, w: itemWidth, h: itemHeight });
-
                 const rot = (config.color === 'rotate') ? Math.floor(Math.random() * 360) : 0;
                 state.layoutItems.push({ type, x, y, px, rot });
             });
@@ -602,7 +622,6 @@
                 el.style.top = item.y + 'px';
                 el.style.transform = `translate(-50%, -50%) rotate(${item.rot || 0}deg)`;
 
-                // 色分け設定の反映
                 if (config.colorVar === 'on') {
                     el.style.color = state.activeColors[item.type];
                 }
@@ -657,6 +676,28 @@
             config.colorVar = document.getElementById('color-variation').value;
             config.answer = document.getElementById('answer-mode').value;
         }
+
+        // --- ランダム選択ボタンの処理 ---
+        document.getElementById('btn-random-select').addEventListener('click', () => {
+            const countInput = document.getElementById('random-count');
+            const checkboxes = Array.from(document.querySelectorAll('.shape-check'));
+            
+            let targetCount = parseInt(countInput.value) || 7;
+            if (targetCount > checkboxes.length) targetCount = checkboxes.length;
+            if (targetCount < 1) targetCount = 1;
+            countInput.value = targetCount; // 入力値を補正して戻す
+
+            // 一旦すべてのチェックを外す
+            checkboxes.forEach(cb => cb.checked = false);
+
+            // シャッフルして指定された個数だけチェックを入れる
+            const shuffled = checkboxes.sort(() => 0.5 - Math.random());
+            for (let i = 0; i < targetCount; i++) {
+                shuffled[i].checked = true;
+            }
+            
+            updateConfig();
+        });
 
         const modal = document.getElementById('settings-modal');
         const overlay = document.getElementById('modal-overlay');
