@@ -6,8 +6,8 @@
     <title>一瞬チャレンジ！いま何個？Pro</title>
     <style>
         :root {
-            --bg-color: #E0F7FA; /* うすい水色 */
-            --text-color: #006064; /* 濃い青緑 */
+            --bg-color: #E0F7FA;
+            --text-color: #006064;
             --btn-primary: #4CAF50;
             --btn-secondary: #2196F3;
             --choice-bg: #03A9F4;
@@ -27,7 +27,6 @@
             -webkit-user-select: none;
         }
 
-        /* ゲームメインエリア */
         #game-area {
             flex: 1;
             position: relative;
@@ -38,7 +37,6 @@
             height: 100%;
         }
 
-        /* メッセージ表示（予告・質問・正解） */
         #message-overlay {
             font-size: 4rem;
             font-weight: bold;
@@ -61,7 +59,6 @@
             white-space: nowrap;
         }
 
-        /* 出現する顔文字 */
         .shape {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -74,7 +71,6 @@
         .shape .emoji {
             line-height: 1;
             font-weight: bold;
-            /* 重なっても見やすいように白いフチドリ */
             text-shadow: 
                 2px 2px 0px #fff, -2px -2px 0px #fff, 
                 2px -2px 0px #fff, -2px 2px 0px #fff,
@@ -85,7 +81,6 @@
             white-space: nowrap;
         }
 
-        /* 操作パネル */
         #action-bar {
             height: 100px;
             display: flex;
@@ -98,7 +93,6 @@
             z-index: 30;
         }
 
-        /* 先生用ボタン */
         .btn-sm {
             padding: 10px 24px;
             font-size: 1.3rem;
@@ -114,7 +108,6 @@
         #btn-start { background: var(--btn-primary); }
         #btn-check { background: var(--btn-secondary); display: none; }
 
-        /* 回答ボタン（生徒用） */
         .choice-btn {
             padding: 10px 50px;
             font-size: 3.5rem;
@@ -133,7 +126,6 @@
             box-shadow: none;
         }
 
-        /* ⚙ 歯車ボタン */
         #settings-trigger {
             position: absolute;
             bottom: 20px;
@@ -148,7 +140,6 @@
         }
         #settings-trigger:hover { opacity: 1; }
 
-        /* 設定画面 */
         #settings-modal {
             display: none;
             position: fixed;
@@ -197,7 +188,6 @@
             background: #fff;
         }
 
-        /* ランダム選択エリアのスタイル */
         .random-select-group {
             display: flex;
             align-items: center;
@@ -213,7 +203,7 @@
             font-weight: bold;
         }
         #btn-random-select {
-            background-color: #00BFFF; /* 水色 */
+            background-color: #00BFFF;
             color: white;
             border: none;
             border-radius: 8px;
@@ -254,7 +244,7 @@
         #close-settings {
             width: 100%;
             padding: 15px;
-            background: var(--btn-primary); /* 「つぎへ」ボタンと同じ色 */
+            background: var(--btn-primary);
             color: white;
             border: none;
             border-radius: 10px;
@@ -291,14 +281,14 @@
             </div>
 
             <div class="check-group">
-                <label><input type="checkbox" class="shape-check" value="face1" checked><span class="emoji-mini">(*'▽')</span> にっこり</label>
-                <label><input type="checkbox" class="shape-check" value="face2" checked><span class="emoji-mini">( ´∀｀ )</span> ほっこり</label>
-                <label><input type="checkbox" class="shape-check" value="face3" checked><span class="emoji-mini">(・∀・)</span> キリッ</label>
-                <label><input type="checkbox" class="shape-check" value="face4" checked><span class="emoji-mini">(￣▽￣)</span> ニヤリ</label>
+                <label><input type="checkbox" class="shape-check" value="face1"><span class="emoji-mini">(*'▽')</span> にっこり</label>
+                <label><input type="checkbox" class="shape-check" value="face2"><span class="emoji-mini">( ´∀｀ )</span> ほっこり</label>
+                <label><input type="checkbox" class="shape-check" value="face3"><span class="emoji-mini">(・∀・)</span> キリッ</label>
+                <label><input type="checkbox" class="shape-check" value="face4"><span class="emoji-mini">(￣▽￣)</span> ニヤリ</label>
                 
-                <label><input type="checkbox" class="shape-check" value="face5" checked><span class="emoji-mini">(&gt;_&lt;)</span> いてて</label>
-                <label><input type="checkbox" class="shape-check" value="face6" checked><span class="emoji-mini">( ﾟДﾟ)</span> びっくり</label>
-                <label><input type="checkbox" class="shape-check" value="face7" checked><span class="emoji-mini">( *´艸｀)</span> うふふ</label>
+                <label><input type="checkbox" class="shape-check" value="face5"><span class="emoji-mini">(&gt;_&lt;)</span> いてて</label>
+                <label><input type="checkbox" class="shape-check" value="face6"><span class="emoji-mini">( ﾟДﾟ)</span> びっくり</label>
+                <label><input type="checkbox" class="shape-check" value="face7"><span class="emoji-mini">( *´艸｀)</span> うふふ</label>
                 <label><input type="checkbox" class="shape-check" value="face8"><span class="emoji-mini">( ˘ω˘ )</span> すやぁ</label>
 
                 <label><input type="checkbox" class="shape-check" value="face9"><span class="emoji-mini">(≧▽≦)</span> わーい</label>
@@ -340,8 +330,8 @@
                 <div>
                     <div style="font-size:0.9rem; margin-bottom:4px;">表示のルール</div>
                     <select id="color-rule" style="width:100%">
-                        <option value="normal">そのまま</option>
-                        <option value="rotate" selected>回転あり</option>
+                        <option value="normal" selected>そのまま</option>
+                        <option value="rotate">回転あり</option>
                     </select>
                 </div>
                 <div>
@@ -354,8 +344,8 @@
                 <div>
                     <div style="font-size:0.9rem; margin-bottom:4px;">色分け</div>
                     <select id="color-variation" style="width:100%">
-                        <option value="on">色を変える</option>
-                        <option value="off" selected>すべて同じ色</option>
+                        <option value="on" selected>色を変える</option>
+                        <option value="off">すべて同じ色</option>
                     </select>
                 </div>
                 <div>
@@ -388,10 +378,10 @@
             time: 700,
             min: 15,
             max: 20,
-            color: 'rotate', // 回転あり
-            size: 'random',  // 大きさバラバラ
-            colorVar: 'off', // 色分けオフ
-            answer: 'none'   // ボタンなし
+            color: 'normal',  // 回転なし
+            size: 'random',   // 大小バラバラ
+            colorVar: 'on',   // 色を変える
+            answer: 'none'
         };
 
         const state = {
@@ -399,7 +389,7 @@
             target: '',
             count: 0,
             active: false,
-            activeColors: {} // 種類ごとの色を保存
+            activeColors: {}
         };
 
         const EMOJI = {
@@ -421,7 +411,6 @@
             pig: "( ´(00)ˋ )"
         };
 
-        // 色分け用のパレット
         const PALETTE = [
             '#D32F2F', '#1976D2', '#388E3C', '#F57C00', 
             '#7B1FA2', '#5D4037', '#C2185B', '#00796B'
@@ -479,10 +468,8 @@
             resetUI();
             clearAllShapes();
 
-            // 万が一チェックが0個の場合は1つめを強制使用
             const types = config.shapes.length ? config.shapes : ['face1'];
 
-            // 色分け用の色を割り当て
             state.activeColors = {};
             types.forEach((t, idx) => {
                 state.activeColors[t] = PALETTE[idx % PALETTE.length];
@@ -604,8 +591,7 @@
 
         function clearAllShapes() {
             const area = document.getElementById('game-area');
-            const old = area.querySelectorAll('.shape');
-            old.forEach(e => e.remove());
+            area.querySelectorAll('.shape').forEach(e => e.remove());
         }
 
         function renderItems(hidden) {
@@ -677,7 +663,15 @@
             config.answer = document.getElementById('answer-mode').value;
         }
 
-        // --- ランダム選択ボタンの処理 ---
+        // 起動時にランダムで7つ選択
+        function initRandomSelection() {
+            const checkboxes = Array.from(document.querySelectorAll('.shape-check'));
+            checkboxes.forEach(cb => cb.checked = false);
+            const shuffled = [...checkboxes].sort(() => 0.5 - Math.random());
+            for (let i = 0; i < 7; i++) { shuffled[i].checked = true; }
+            updateConfig();
+        }
+
         document.getElementById('btn-random-select').addEventListener('click', () => {
             const countInput = document.getElementById('random-count');
             const checkboxes = Array.from(document.querySelectorAll('.shape-check'));
@@ -685,12 +679,10 @@
             let targetCount = parseInt(countInput.value) || 7;
             if (targetCount > checkboxes.length) targetCount = checkboxes.length;
             if (targetCount < 1) targetCount = 1;
-            countInput.value = targetCount; // 入力値を補正して戻す
+            countInput.value = targetCount;
 
-            // 一旦すべてのチェックを外す
             checkboxes.forEach(cb => cb.checked = false);
 
-            // シャッフルして指定された個数だけチェックを入れる
             const shuffled = checkboxes.sort(() => 0.5 - Math.random());
             for (let i = 0; i < targetCount; i++) {
                 shuffled[i].checked = true;
@@ -718,7 +710,7 @@
 
         document.getElementById('btn-start').onclick = playSequence;
 
-        updateConfig();
+        initRandomSelection();
     </script>
 </body>
 </html>
